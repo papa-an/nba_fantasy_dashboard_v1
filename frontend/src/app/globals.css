@@ -72,9 +72,17 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Red Gradient Text */
+/* Gradient Text Utilities */
 .text-gradient-red {
-  background: linear-gradient(to right, #ef4444, #f87171);
+  background: linear-gradient(to right, #ef4444, #b91c1c);
   -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-orange {
+  background: linear-gradient(to right, #f97316, #fb923c);
+  -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }

@@ -11,9 +11,12 @@ import {
     FastForward,
     ChevronRight,
     Settings,
-    LayoutDashboard
+    LogOut,
+    Dribbble as Basketball
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 const navItems = [
     { name: 'Standings', icon: Trophy, href: '/' },
@@ -25,15 +28,22 @@ const navItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/login');
+        router.refresh();
+    };
 
     return (
         <div className="w-64 h-full glass border-r border-border/50 flex flex-col">
             <div className="p-6">
                 <div className="flex items-center gap-3 mb-8">
-                    <div className="bg-primary/20 p-2 rounded-xl">
-                        <LayoutDashboard className="w-6 text-primary" />
+                    <div className="bg-orange-500/20 p-2 rounded-xl border border-orange-500/30">
+                        <Basketball className="w-6 text-orange-500" />
                     </div>
-                    <h1 className="text-xl font-bold tracking-tight">NBA <span className="text-primary text-gradient-red">Fantasy</span></h1>
+                    <h1 className="text-xl font-bold tracking-tight">NBA <span className="text-orange-500 text-gradient-orange">Fantasy</span></h1>
                 </div>
 
                 <nav className="space-y-1">
@@ -73,6 +83,14 @@ export function Sidebar() {
                 <button className="flex items-center gap-3 px-4 py-2 w-full text-muted-foreground hover:text-foreground transition-colors group">
                     <Settings className="w-5 group-hover:rotate-45 transition-transform" />
                     <span className="text-sm font-medium">Settings</span>
+                </button>
+
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-4 py-2 w-full text-red-500/70 hover:text-red-500 transition-colors group"
+                >
+                    <LogOut className="w-5" />
+                    <span className="text-sm font-medium">Logout</span>
                 </button>
             </div>
         </div>

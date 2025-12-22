@@ -13,40 +13,41 @@ To transform raw NBA box score data into actionable intelligence. The tool aims 
 
 ### Phase 1: Data Ingestion & Live Feeds [✅ COMPLETE]
 **Vision:** *The Real-Time NBA Pulse*
-* **[x] ESPN API Sync:** Secure connection via `swid` and `espn_s2` cookies to pull private league settings and live rosters.
-* **[x] NBA News Aggregator:** Real-time integration of NBC Sports/Rotoworld feeds with team mapping.
+* **[x] ESPN API Sync:** Secure connection to pull private league settings and live rosters.
+* **[x] NBA News Aggregator:** Real-time integration of NBC Sports/Rotoworld feeds.
 * **[x] Schedule Tracker:** 3-column analysis tracker for Current and Upcoming matchups with advantage indicators.
 * **[x] League Standings:** Dynamic ranking table with Win % and Ties.
 
-### Phase 1.5: Strategy Room Foundation [✅ COMPLETE]
-**Vision:** *The Command Center*
-* **[x] Strategy Room Tab:** Professional 2-column layout (Heatmap placeholder + Roster DNA).
-* **[x] Roster DNA Table:** Tracking player positions, injury status, and acquisition type.
-* **[x] Full-Width AI Insights:** Symmetrical 3-card system (Composition, How to Win, How to Improve).
-
 ### Phase 2: Statistical Engine & Normalization [🚧 IN PROGRESS]
 **Vision:** *The Context Layer*
-* **Z-Score Calibration:** Normalizing player value across all 9 categories (PTS, REB, AST, STL, BLK, 3PM, FG%, FT%, TO).
-    * *Formula:* $Z = \frac{x - \mu}{\sigma}$
-* **League Power Matrix:** 12-team category heatmap.
-* **Punt-Mode Toggle:** Dynamic re-ranking based on ignored categories.
-* **Volatility & Variance Analysis:** Identifying "High-Variance" players.
+* **[ ] Z-Score Calibration:** Normalizing player value across all 9 categories (PTS, REB, AST, STL, BLK, 3PM, FG%, FT%, TO).
+* **[ ] League Power Matrix:** 12-team category heatmap.
+* **[ ] Punt-Mode Toggle:** Dynamic re-ranking based on ignored categories.
+* **[ ] Volatility Analysis:** Identifying "High-Variance" players for DFS and H2H.
 
+### Phase 3: Infrastructure & Scalability [✅ COMPLETE]
+**Vision:** *The Scalable Foundation*
+* **[x] Next.js 15 Migration:** Replaced Streamlit with a modern, high-performance React frontend.
+* **[x] FastAPI Backend:** Decoupled data processing logic into a dedicated API service.
+* **[x] Mobile-Responsive UI:** Premium dark-mode dashboard with glassmorphism and basketball-centric branding.
+* **[x] Supabase Authentication:** Protected routes and secure login system for personal use.
 
-### Phase 4: Proactive Intelligence (UI/UX)
+### Phase 4: Intelligence & Deployment
 **Vision:** *Decision Support at the Speed of News*
-* **Interactive Heatmaps:** League-wide visual grids identifying which opponents are vulnerable in specific categories.
-* **Injury Impact Alerts:** Automated logic that surfaces "Next Man Up" opportunities (e.g., identifying usage spikes when a starter is sidelined).
-* **Optimization Dashboard:** A unified Streamlit/React interface prioritizing "Today's Must-Do Moves."
+* **[ ] DB Integration:** Storing ESPN credentials in Supabase for persistence.
+* **[ ] Deployment:** Hosting on Vercel/Railway for 24/7 access.
+* **[ ] Injury Impact Alerts:** Automated logic that surfaces "Next Man Up" opportunities.
+* **[ ] Optimization Dashboard:** Prioritizing "Today's Must-Do Moves."
 
 ---
 
 ## 🛠️ Technical Stack
-* **Language:** Python 3.x
-* **Data Processing:** Pandas, NumPy, SciPy (for Z-Score and Variance calculations)
+* **Frontend:** Next.js 15 (App Router), Tailwind CSS 4, Framer Motion
+* **Backend:** FastAPI (Python 3.10+), Uvicorn
+* **Database & Auth:** Supabase (PostgreSQL & GoTrue)
+* **Data Processing:** Pandas, NumPy, SciPy
 * **API Wrapper:** `espn-api` (Python)
-* **Frontend:** Streamlit (for rapid dashboarding) or React.js
-* **Data Sources:** ESPN API, Hashtag Basketball (Projections), Underdog NBA (News)
+* **Design:** Radix UI tokens, Lucide Icons, Glassmorphism aesthetics
 
 ---
 
@@ -61,4 +62,6 @@ To transform raw NBA box score data into actionable intelligence. The tool aims 
 ---
 
 ## 🛠️ Installation & Setup
-*(Coming Soon - Refer to Phase 1 for Authentication steps)*
+1. **Backend**: `cd backend && pip install -r requirements.txt && python -m uvicorn app.main:app --reload`
+2. **Frontend**: `cd frontend && npm install && npm run dev`
+3. **Env**: Setup `.env` with Supabase and ESPN credentials. 
