@@ -6,3 +6,4 @@ streamlit
 python-dotenv
 requests
 plotly
+beautifulsoup4
