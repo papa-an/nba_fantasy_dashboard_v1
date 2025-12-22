@@ -11,24 +11,27 @@ To transform raw NBA box score data into actionable intelligence. The tool aims 
 
 ## 🗺️ Product Roadmap
 
-### Phase 1: Data Ingestion & Live Feeds [COMPLETE]
+### Phase 1: Data Ingestion & Live Feeds [✅ COMPLETE]
 **Vision:** *The Real-Time NBA Pulse*
 * **[x] ESPN API Sync:** Secure connection via `swid` and `espn_s2` cookies to pull private league settings and live rosters.
-* **[x] NBA News Aggregator:** Real-time integration of NBC Sports/Rotoworld feeds, filtered for rostered players with full team mapping.
-* **[x] Schedule Tracker:** A "Games per Week" 3-column analysis tracker for Current and Upcoming matchups with advantage indicators.
+* **[x] NBA News Aggregator:** Real-time integration of NBC Sports/Rotoworld feeds with team mapping.
+* **[x] Schedule Tracker:** 3-column analysis tracker for Current and Upcoming matchups with advantage indicators.
+* **[x] League Standings:** Dynamic ranking table with Win % and Ties.
 
-### Phase 2: Statistical Engine & Normalization
+### Phase 1.5: Strategy Room Foundation [✅ COMPLETE]
+**Vision:** *The Command Center*
+* **[x] Strategy Room Tab:** Professional 2-column layout (Heatmap placeholder + Roster DNA).
+* **[x] Roster DNA Table:** Tracking player positions, injury status, and acquisition type.
+* **[x] Full-Width AI Insights:** Symmetrical 3-card system (Composition, How to Win, How to Improve).
+
+### Phase 2: Statistical Engine & Normalization [🚧 IN PROGRESS]
 **Vision:** *The Context Layer*
 * **Z-Score Calibration:** Normalizing player value across all 9 categories (PTS, REB, AST, STL, BLK, 3PM, FG%, FT%, TO).
     * *Formula:* $Z = \frac{x - \mu}{\sigma}$
-* **Volatility & Variance Analysis:** Utilizing **Standard Deviation ($\sigma$)** to identify "High-Variance" (boom/bust) players vs. "Safe Floor" anchors.
-* **Punt-Mode Toggle:** Dynamic re-ranking of players based on specific "Punt" strategies (e.g., Punting FT% or TO).
+* **League Power Matrix:** 12-team category heatmap.
+* **Punt-Mode Toggle:** Dynamic re-ranking based on ignored categories.
+* **Volatility & Variance Analysis:** Identifying "High-Variance" players.
 
-### Phase 3: Strategic Decision Engine
-**Vision:** *The Virtual GM*
-* **Trade Impact Simulator:** A "Before vs. After" visualization of how a trade shifts team Z-scores across all categories.
-* **H2H Matchup Predictor:** Monte Carlo simulations of the upcoming week using Rest-of-Season (ROS) projections and strength of schedule.
-* **Streaming Logic:** An automated waiver wire tool to find the best category-specific "streamers" based on daily game density.
 
 ### Phase 4: Proactive Intelligence (UI/UX)
 **Vision:** *Decision Support at the Speed of News*
