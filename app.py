@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from src.data import espn_connector, news_aggregator, schedule_engine, matchup_calendar
+from src.analysis import roster_analyzer
 from src.ui import schedule_view
 from src.utils import config
 import datetime
@@ -93,8 +94,14 @@ else:
              st.session_state.my_team_idx = team_names.index(selected_team_name)
         # -----------------------------------------------------
 
-        # Tabs for Phase 1 Features
-        tab1, tab2, tab3, tab4 = st.tabs(["🏆 Standings", "📰 Player News", "📅 Current Week", "🔮 Upcoming Week"])
+        # Tabs for Phase 1 & 2 Features
+        tab1, tab_strat, tab2, tab3, tab4 = st.tabs([
+            "🏆 Standings", 
+            "🏛️ Strategy Room",
+            "📰 Player News", 
+            "📅 Current Week", 
+            "🔮 Upcoming Week"
+        ])
         
         with tab1:
             st.subheader("League Standings")
@@ -120,6 +127,108 @@ else:
                 st.dataframe(df_teams, use_container_width=True, hide_index=True)
             else:
                 st.write("No teams found.")
+
+        with tab_strat:
+            st.header("🏛️ Strategy Room")
+            st.info("📊 **Phase 2 Implementation Started:** Statistical Engine Calibration in progress.")
+            
+            # Variable to store insights
+            roster_insights = None
+            
+            # Layout: Left side for Heatmap (Placeholder), Right side for Team DNA
+            col_heatmap, col_dna = st.columns([3, 2])
+            
+            with col_heatmap:
+                st.subheader("League Power Matrix")
+                # Visual Placeholder for Heatmap
+                st.markdown("""
+                <div style="background-color: #1E1E1E; padding: 40px; border-radius: 10px; border: 1px dashed #444; text-align: center;">
+                    <div style="font-size: 40px;">🧪</div>
+                    <div style="font-size: 16px; font-weight: bold; margin-top: 10px;">9-Cat Z-Score Heatmap coming in Phase 2</div>
+                    <div style="font-size: 12px; color: #888;">Calibrating League Medians...</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col_dna:
+                st.subheader("Roster DNA")
+                # Specific Team Selector for this tab
+                target_team_name = st.selectbox(
+                    "Select Team to Analyze", 
+                    team_names, 
+                    index=st.session_state.my_team_idx,
+                    key="strat_team_select"
+                )
+                
+                target_team = next((t for t in league.teams if t.team_name == target_team_name), None)
+                
+                if target_team:
+                    roster_data = []
+                    for player in target_team.roster:
+                        # Extract basic info
+                        roster_data.append({
+                            "Player": player.name,
+                            "POS": player.position,
+                            "Status": "✅ Active" if player.injuryStatus == "ACTIVE" else f"🚑 {player.injuryStatus}",
+                            "Acquired": player.acquisitionType
+                        })
+                    
+                    df_roster = pd.DataFrame(roster_data)
+                    st.dataframe(df_roster, use_container_width=True, hide_index=True)
+                    
+                    # Compute insights for display below
+                    roster_insights = roster_analyzer.generate_roster_insight(target_team.roster)
+                    
+                else:
+                    st.write("Select a team to see roster DNA.")
+
+            # Full-Width AI Insights Section
+            if roster_insights:
+                st.markdown("---")
+                st.subheader("🤖 AI-Generated Insights")
+                
+                col_i1, col_i2, col_i3 = st.columns(3)
+                
+                # 1. Roster Composition (Red Theme)
+                with col_i1:
+                    st.markdown(f"""
+                    <div style="background-color: #262730; padding: 15px; border-radius: 8px; border-top: 4px solid #FF4B4B; min-height: 180px;">
+                        <div style="font-weight: bold; color: #FF4B4B; margin-bottom: 8px;">📊 Roster Composition</div>
+                        <div style="font-size: 13px; color: #ddd; line-height: 1.4;">
+                            {roster_insights['composition_report']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                # 2. How to Win (Green Theme)
+                with col_i2:
+                    st.markdown(f"""
+                    <div style="background-color: #262730; padding: 15px; border-radius: 8px; border-top: 4px solid #00CC66; min-height: 180px;">
+                        <div style="font-weight: bold; color: #00CC66; margin-bottom: 8px;">🏆 How to Win</div>
+                        <div style="font-size: 13px; color: #ddd; line-height: 1.4;">
+                            {roster_insights['win_strategy']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                # 3. How to Improve (Blue Theme)
+                with col_i3:
+                    st.markdown(f"""
+                    <div style="background-color: #262730; padding: 15px; border-radius: 8px; border-top: 4px solid #3399FF; min-height: 180px;">
+                        <div style="font-weight: bold; color: #3399FF; margin-bottom: 8px;">💡 How to Improve</div>
+                        <div style="font-size: 13px; color: #ddd; line-height: 1.4;">
+                            {roster_insights['improvement_plan']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            st.divider()
+            st.subheader("🎯 Smart Waiver Radar")
+            st.caption("Identifying high-value category streamers based on weighted Z-Scores...")
+            st.markdown("""
+            <div style="background-color: #0E1117; padding: 15px; border-radius: 8px; border: 1px solid #333;">
+                <i>Foundation being built for category-specific re-ranking.</i>
+            </div>
+            """, unsafe_allow_html=True)
 
         with tab2:
             st.subheader("🔥 Latest Player News")
