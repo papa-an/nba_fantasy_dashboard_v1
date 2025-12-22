@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+espn-api
+pandas
+python-dotenv
+beautifulsoup4
+requests
+plotly
+scipy

@@ -1,9 +1,0 @@
-espn-api
-pandas
-numpy
-scipy
-streamlit
-python-dotenv
-requests
-plotly
-beautifulsoup4
