@@ -61,7 +61,7 @@ else:
                     "Owner": team.owners[0].get('firstName', 'Unknown') if team.owners else 'Unknown',
                     "Wins": team.wins,
                     "Losses": team.losses,
-                    "Playoff Seed": team.playoff_pct
+                    "Rank": team.standing
                 })
             
             df_teams = pd.DataFrame(team_data)
