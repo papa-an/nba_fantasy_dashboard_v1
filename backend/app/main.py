@@ -6,6 +6,7 @@ import datetime
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from app.routers import news, nba_stats
 
 # Load environment variables from .env file FIRST
 load_dotenv()
@@ -17,6 +18,10 @@ from app.src.utils import config
 from app.services import matchup_service
 
 app = FastAPI(title="NBA Fantasy API")
+
+# Include Routers
+app.include_router(news.router, prefix="/news", tags=["News"])
+app.include_router(nba_stats.router, prefix="/nba", tags=["NBA Stats"])
 
 # Supabase Admin Client for fetching user settings
 supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
