@@ -28,13 +28,13 @@ To transform raw NBA box score data into actionable intelligence. The tool aims 
 ### Phase 3: Infrastructure & Scalability [✅ COMPLETE]
 **Vision:** *The Scalable Foundation*
 * **[x] Next.js 15 Migration:** Replaced Streamlit with a modern, high-performance React frontend.
-* **[x] FastAPI Backend:** Decoupled data processing logic into a dedicated API service.
-* **[x] Mobile-Responsive UI:** Premium dark-mode dashboard with glassmorphism and basketball-centric branding.
-* **[x] Supabase Authentication:** Protected routes and secure login system for personal use.
+* **[x] FastAPI Backend:** User-aware API with dynamic token handling.
+* **[x] Mobile-Responsive UI:** Premium dark-mode dashboard with orange-centric branding.
+* **[x] Supabase Authentication:** Fully integrated login, signup, and settings management.
+* **[x] Dynamic Multi-User Support:** Backend now fetches private league credentials per-user from Supabase.
 
 ### Phase 4: Intelligence & Deployment
 **Vision:** *Decision Support at the Speed of News*
-* **[ ] DB Integration:** Storing ESPN credentials in Supabase for persistence.
 * **[ ] Deployment:** Hosting on Vercel/Railway for 24/7 access.
 * **[ ] Injury Impact Alerts:** Automated logic that surfaces "Next Man Up" opportunities.
 * **[ ] Optimization Dashboard:** Prioritizing "Today's Must-Do Moves."
@@ -43,25 +43,14 @@ To transform raw NBA box score data into actionable intelligence. The tool aims 
 
 ## 🛠️ Technical Stack
 * **Frontend:** Next.js 15 (App Router), Tailwind CSS 4, Framer Motion
-* **Backend:** FastAPI (Python 3.10+), Uvicorn
-* **Database & Auth:** Supabase (PostgreSQL & GoTrue)
-* **Data Processing:** Pandas, NumPy, SciPy
+* **Backend:** FastAPI (Python 3.10+), Supabase Auth/DB
+* **Database:** Supabase (PostgreSQL)
+* **Auth:** Supabase GoTrue
 * **API Wrapper:** `espn-api` (Python)
-* **Design:** Radix UI tokens, Lucide Icons, Glassmorphism aesthetics
-
----
-
-## 📊 Core Metrics Defined
-| Metric | Purpose |
-| :--- | :--- |
-| **Z-Score** | Normalizes stats to compare value across different categories (e.g., comparing AST to BLK). |
-| **Standard Deviation ($\sigma$)** | Measures scoring consistency; lower $\sigma$ indicates a "reliable" weekly starter. |
-| **Variance ($\sigma^2$)** | Analyzes team-wide stability; helps in deciding whether to "swing for upside" in a matchup. |
-| **Usage Rate (USG%)** | Predicts volume increases when teammates are injured. |
 
 ---
 
 ## 🛠️ Installation & Setup
 1. **Backend**: `cd backend && pip install -r requirements.txt && python -m uvicorn app.main:app --reload`
 2. **Frontend**: `cd frontend && npm install && npm run dev`
-3. **Env**: Setup `.env` with Supabase and ESPN credentials. 
+3. **Env**: Setup `.env` with Supabase credentials. 

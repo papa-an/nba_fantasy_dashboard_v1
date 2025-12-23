@@ -5,11 +5,23 @@ from app.src.utils.team_mapping import get_full_team_name
 
 URL = "https://www.nbcsports.com/fantasy/basketball/player-news"
 
+# Simple in-memory cache
+_news_cache = []
+_last_fetch = None
+CACHE_DURATION = datetime.timedelta(minutes=10)
+
 def fetch_player_news(limit=15):
     """
     Scrapes the latest NBA player news from NBC Sports (Rotoworld).
     Returns a list of dictionaries.
     """
+    global _news_cache, _last_fetch
+    
+    now = datetime.datetime.now()
+    if _last_fetch and (now - _last_fetch < CACHE_DURATION):
+        print("DEBUG: Returning cached news")
+        return _news_cache[:limit]
+
     news_items = []
     
     try:
@@ -118,5 +130,9 @@ def fetch_player_news(limit=15):
     except Exception as e:
         print(f"Failed to fetch news: {e}")
         return []
+        
+    if news_items:
+        _news_cache = news_items
+        _last_fetch = now
         
     return news_items

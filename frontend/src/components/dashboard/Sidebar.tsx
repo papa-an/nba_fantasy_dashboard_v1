@@ -80,10 +80,10 @@ export function Sidebar() {
                     </div>
                 </div>
 
-                <button className="flex items-center gap-3 px-4 py-2 w-full text-muted-foreground hover:text-foreground transition-colors group">
+                <Link href="/settings" className="flex items-center gap-3 px-4 py-2 w-full text-muted-foreground hover:text-foreground transition-colors group">
                     <Settings className="w-5 group-hover:rotate-45 transition-transform" />
                     <span className="text-sm font-medium">Settings</span>
-                </button>
+                </Link>
 
                 <button
                     onClick={handleLogout}

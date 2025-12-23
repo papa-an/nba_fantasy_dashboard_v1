@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -13,66 +13,52 @@ export async function middleware(request: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value;
+                getAll() {
+                    return request.cookies.getAll();
                 },
-                set(name: string, value: string, options: CookieOptions) {
-                    request.cookies.set({
-                        name,
-                        value,
-                        ...options,
-                    });
+                setAll(cookiesToSet) {
+                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
                     response = NextResponse.next({
                         request: {
                             headers: request.headers,
                         },
                     });
-                    response.cookies.set({
-                        name,
-                        value,
-                        ...options,
-                    });
-                },
-                remove(name: string, options: CookieOptions) {
-                    request.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    });
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    });
-                    response.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    });
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        response.cookies.set(name, value, options)
+                    );
                 },
             },
         }
     );
 
-    const { data: { session } } = await supabase.auth.getSession();
+    // This will refresh the session if expired and check for valid user
+    const { data: { user } } = await supabase.auth.getUser();
 
-    // If there is no session and the user is trying to access a protected route
-    if (!session && !request.nextUrl.pathname.startsWith('/login')) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = '/login';
-        return NextResponse.redirect(redirectUrl);
+    const isLoginPage = request.nextUrl.pathname === '/login';
+    const isPublicFile = request.nextUrl.pathname.includes('.');
+
+    // 1. If user is signed in and trying to access /login, go home
+    if (user && isLoginPage) {
+        return NextResponse.redirect(new URL('/', request.url));
     }
 
-    // If there is a session and the user is trying to access the login page
-    if (session && request.nextUrl.pathname.startsWith('/login')) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = '/';
-        return NextResponse.redirect(redirectUrl);
+    // 2. If user is NOT signed in and trying to access protected route (anything except login or public files)
+    if (!user && !isLoginPage && !isPublicFile) {
+        return NextResponse.redirect(new URL('/login', request.url));
     }
 
     return response;
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: [
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * Feel free to modify this pattern to include more paths.
+         */
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    ],
 };
