@@ -18,41 +18,14 @@ api.interceptors.request.use(async (config) => {
     return Promise.reject(error);
 });
 
-export const fetchLeagueInfo = async () => {
-    const { data } = await api.get('/league/info');
-    return data;
-};
-
-export const fetchStandings = async () => {
-    const { data } = await api.get('/league/standings');
-    return data;
-};
-
-export const fetchTeams = async () => {
-    const { data } = await api.get('/league/teams');
-    return data;
-};
-
-export const fetchRoster = async (teamId: number) => {
-    const { data } = await api.get(`/team/${teamId}/roster`);
-    return data;
-};
+// --- Fantasy Intelligence Endpoints ---
 
 export const fetchNews = async () => {
     const { data } = await api.get('/news');
     return data;
 };
 
-export const fetchCurrentSchedule = async (teamId?: number) => {
-    const { data } = await api.get('/schedule/current', {
-        params: { my_team_id: teamId }
-    });
-    return data;
-};
-
-export const fetchUpcomingSchedule = async (teamId?: number) => {
-    const { data } = await api.get('/schedule/upcoming', {
-        params: { my_team_id: teamId }
-    });
+export const fetchPlayerRankings = async () => {
+    const { data } = await api.get('/nba/rankings');
     return data;
 };

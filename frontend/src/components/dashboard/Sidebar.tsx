@@ -19,11 +19,8 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 const navItems = [
-    { name: 'Standings', icon: Trophy, href: '/' },
-    { name: 'Strategy Room', icon: Target, href: '/strategy' },
+    { name: 'Scouting Board', icon: Target, href: '/scouting' },
     { name: 'Player News', icon: Newspaper, href: '/news' },
-    { name: 'Current Week', icon: Calendar, href: '/current-week' },
-    { name: 'Upcoming Week', icon: FastForward, href: '/upcoming-week' },
 ];
 
 export function Sidebar() {
