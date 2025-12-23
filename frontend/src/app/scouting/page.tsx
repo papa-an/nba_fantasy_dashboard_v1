@@ -93,14 +93,44 @@ export default function ScoutingPage() {
         );
     }
 
+    const [expandedPlayerId, setExpandedPlayerId] = useState<number | null>(null);
+    const [consistencyData, setConsistencyData] = useState<Record<number, any>>({});
+    const [loadingConsistency, setLoadingConsistency] = useState(false);
+
+    // ... (existing useEffect)
+
+    const handleRowClick = async (playerId: number) => {
+        if (expandedPlayerId === playerId) {
+            setExpandedPlayerId(null);
+            return;
+        }
+
+        setExpandedPlayerId(playerId);
+
+        if (!consistencyData[playerId]) {
+            setLoadingConsistency(true);
+            try {
+                // Determine API path dynamically - in real app import from api
+                // helping consistency with local dev vs prod
+                const { fetchPlayerConsistency } = await import('@/lib/api');
+                const data = await fetchPlayerConsistency(playerId);
+                setConsistencyData(prev => ({ ...prev, [playerId]: data }));
+            } catch (error) {
+                console.error("Failed to fetch consistency:", error);
+            } finally {
+                setLoadingConsistency(false);
+            }
+        }
+    };
+
     return (
-        <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 animate-fade-in">
+        <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 animate-fade-in relative">
             {/* Header */}
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold tracking-tight">Scouting <span className="text-gradient-orange">Dashboard</span></h1>
                 <p className="text-muted-foreground flex items-center gap-2">
                     <Info className="w-4 h-4" />
-                    Players ranked by "Z-Score" (Standard Deviation) - The true measure of fantasy value.
+                    Click on a player to see their <span className="text-orange-400 font-semibold">Consistency Grade</span> & Volatility Analysis.
                 </p>
             </div>
 
@@ -116,12 +146,8 @@ export default function ScoutingPage() {
                                     className="px-4 py-4 cursor-pointer hover:text-white transition-colors text-right"
                                     onClick={() => handleSort('TOTAL_Z')}
                                 >
-                                    <div className="flex items-center justify-end gap-1">
-                                        Value (Z)
-                                        <ArrowUpDown className="w-3 h-3" />
-                                    </div>
+                                    Value (Z) <ArrowUpDown className="w-3 h-3 inline ml-1" />
                                 </th>
-                                {/* 9-Cat Columns */}
                                 {['PTS', 'REB', 'AST', 'FG3M', 'STL', 'BLK', 'FG_PCT', 'FT_PCT', 'TOV'].map((cat) => (
                                     <th
                                         key={cat}
@@ -135,35 +161,87 @@ export default function ScoutingPage() {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {sortedPlayers.map((player) => (
-                                <motion.tr
-                                    key={player.PLAYER_ID}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="hover:bg-white/5 transition-colors group"
-                                >
-                                    <td className="px-4 py-3 text-center text-muted-foreground font-mono">{player.RANK}</td>
-                                    <td className="px-4 py-3 font-medium text-white">
-                                        <div className="flex flex-col">
-                                            <span>{player.PLAYER_NAME}</span>
-                                            <span className="text-xs text-muted-foreground">{player.TEAM_ABBREVIATION} • {player.MIN.toFixed(1)} MPG</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-right bg-white/5 font-mono text-base">
-                                        <span className={getZScoreColor(player.TOTAL_Z)}>
-                                            {player.TOTAL_Z.toFixed(2)}
-                                        </span>
-                                    </td>
-                                    {/* Stats Cells */}
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.PTS.toFixed(1)}</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.REB.toFixed(1)}</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.AST.toFixed(1)}</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.FG3M.toFixed(1)}</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.STL.toFixed(1)}</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.BLK.toFixed(1)}</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.FG_PCT * 100).toFixed(1)}%</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.FT_PCT * 100).toFixed(1)}%</td>
-                                    <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.TOV.toFixed(1)}</td>
-                                </motion.tr>
+                                <React.Fragment key={player.PLAYER_ID}>
+                                    <motion.tr
+                                        layout
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        onClick={() => handleRowClick(player.PLAYER_ID)}
+                                        className={cn(
+                                            "cursor-pointer transition-colors group",
+                                            expandedPlayerId === player.PLAYER_ID ? "bg-white/10" : "hover:bg-white/5"
+                                        )}
+                                    >
+                                        <td className="px-4 py-3 text-center text-muted-foreground font-mono">{player.RANK}</td>
+                                        <td className="px-4 py-3 font-medium text-white">
+                                            <div className="flex flex-col">
+                                                <span>{player.PLAYER_NAME}</span>
+                                                <span className="text-xs text-muted-foreground">{player.TEAM_ABBREVIATION} • {player.MIN.toFixed(1)} MPG</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-right bg-white/5 font-mono text-base">
+                                            <span className={getZScoreColor(player.TOTAL_Z)}>
+                                                {player.TOTAL_Z.toFixed(2)}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.PTS.toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.REB.toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.AST.toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.FG3M.toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.STL.toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.BLK.toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.FG_PCT * 100).toFixed(1)}%</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.FT_PCT * 100).toFixed(1)}%</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.TOV.toFixed(1)}</td>
+                                    </motion.tr>
+
+                                    {/* Expanded Content */}
+                                    {expandedPlayerId === player.PLAYER_ID && (
+                                        <tr className="bg-black/20">
+                                            <td colSpan={13} className="p-0">
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: "auto", opacity: 1 }}
+                                                    className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-orange-500/20"
+                                                >
+                                                    {loadingConsistency && !consistencyData[player.PLAYER_ID] ? (
+                                                        <div className="col-span-3 flex justify-center py-8">
+                                                            <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+                                                        </div>
+                                                    ) : consistencyData[player.PLAYER_ID] ? (
+                                                        <>
+                                                            <div className="bg-background/50 p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center text-center">
+                                                                <span className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Consistency Grade</span>
+                                                                <span className={cn(
+                                                                    "text-5xl font-black",
+                                                                    consistencyData[player.PLAYER_ID].consistency_grade.startsWith("A") ? "text-green-400" :
+                                                                        consistencyData[player.PLAYER_ID].consistency_grade === "B" ? "text-blue-400" :
+                                                                            consistencyData[player.PLAYER_ID].consistency_grade === "C" ? "text-yellow-400" : "text-red-400"
+                                                                )}>
+                                                                    {consistencyData[player.PLAYER_ID].consistency_grade}
+                                                                </span>
+                                                                <span className="text-xs text-muted-foreground mt-2">Based on Last 20 Games</span>
+                                                            </div>
+
+                                                            <div className="col-span-2 grid grid-cols-3 gap-4">
+                                                                {Object.entries(consistencyData[player.PLAYER_ID].volatility_stats).map(([key, val]: [string, any]) => (
+                                                                    <div key={key} className="bg-background/30 p-3 rounded-lg border border-white/5">
+                                                                        <div className="text-[10px] text-muted-foreground uppercase">{key.replace('_STD', '')} Volatility</div>
+                                                                        <div className="text-lg font-mono font-medium text-white">{val} <span className="text-xs text-muted-foreground">σ</span></div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="col-span-3 text-center text-muted-foreground py-4">
+                                                            No consistency data available
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>

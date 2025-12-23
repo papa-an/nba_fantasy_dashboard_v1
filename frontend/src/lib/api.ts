@@ -29,3 +29,8 @@ export const fetchPlayerRankings = async () => {
     const { data } = await api.get('/nba/rankings');
     return data;
 };
+
+export const fetchPlayerConsistency = async (playerId: number) => {
+    const { data } = await api.get(`/nba/player/${playerId}/consistency`);
+    return data;
+};

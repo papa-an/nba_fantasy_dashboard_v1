@@ -103,6 +103,60 @@ async def get_player_rankings():
         raise HTTPException(status_code=500, detail="Failed to fetch NBA stats")
     return stats[:200] # Return top 200 for now to keep payload light
 
+@router.get("/player/{player_id}/consistency")
+async def get_player_consistency_stats(player_id: int):
+    """
+    Returns consistency metrics (Standard Deviation) for a player's last 20 games.
+    """
+    try:
+        # Fetch game logs
+        gamelog = playergamelog.PlayerGameLog(player_id=player_id, season='2024-25').get_data_frames()[0]
+        
+        if gamelog.empty:
+             return {"message": "No games played"}
+             
+        recent = gamelog.head(20) # Analyze last 20 games for relevant trend
+        
+        # Calculate Standard Deviation (Volatility) for 9-cat
+        # Lower Clean_STD = Better Consistency
+        stats_std = {
+            'PTS_STD': round(recent['PTS'].std(), 2),
+            'REB_STD': round(recent['REB'].std(), 2),
+            'AST_STD': round(recent['AST'].std(), 2),
+            'STL_STD': round(recent['STL'].std(), 2),
+            'BLK_STD': round(recent['BLK'].std(), 2),
+            'FG3M_STD': round(recent['FG3M'].std(), 2),
+            'FG_PCT_STD': round(recent['FG_PCT'].std(), 3),
+            'FT_PCT_STD': round(recent['FT_PCT'].std(), 3),
+            'TOV_STD': round(recent['TOV'].std(), 2),
+        }
+        
+        # Calculate a "Consistency Grade" (A-F) based on PTS volatility relative to average
+        avg_pts = recent['PTS'].mean()
+        cv_pts = stats_std['PTS_STD'] / avg_pts if avg_pts > 0 else 0
+        
+        grade = "B"
+        if cv_pts < 0.2: grade = "A+" # Very consistent
+        elif cv_pts < 0.3: grade = "A"
+        elif cv_pts < 0.4: grade = "B"
+        elif cv_pts < 0.5: grade = "C"
+        else: grade = "D" # High volatility (Boom/Bust)
+
+        return {
+            "player_id": player_id,
+            "games_analyzed": len(recent),
+            "consistency_grade": grade,
+            "volatility_stats": stats_std,
+            "recent_averages": {
+                "PTS": round(avg_pts, 1),
+                "MIN": round(recent['MIN'].mean(), 1)
+            }
+        }
+            
+    except Exception as e:
+        print(f"Error fetching consistency: {e}")
+        raise HTTPException(status_code=500, detail="Failed to analyze consistency")
+
 @router.get("/trending")
 async def get_trending_players():
     """
