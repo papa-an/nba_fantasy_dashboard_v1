@@ -87,12 +87,21 @@ async def get_current_user_league(authorization: str = Header(None)):
             raise HTTPException(status_code=400, detail="No ESPN credentials found. Please go to Settings.")
         
         s = settings_response.data[0]
-        league = espn_connector.get_league_connection(
-            league_id=s.get('league_id'),
-            season=s.get('season'),
-            espn_s2=s.get('espn_s2'),
-            swid=s.get('swid')
-        )
+        
+        # Log what we're trying
+        print(f"DEBUG: Connecting to ESPN - League: {s.get('league_id')}, Season: {s.get('season')}")
+        
+        try:
+            league = espn_connector.get_league_connection(
+                league_id=s.get('league_id'),
+                season=s.get('season'),
+                espn_s2=s.get('espn_s2'),
+                swid=s.get('swid')
+            )
+        except Exception as espn_err:
+            error_detail = f"ESPN Connection Failed: {str(espn_err)}"
+            print(f"ERROR: {error_detail}")
+            raise HTTPException(status_code=400, detail=error_detail)
         
         if not league:
             raise HTTPException(status_code=400, detail="Could not connect to ESPN. Check your credentials in Settings.")
@@ -108,10 +117,9 @@ async def get_current_user_league(authorization: str = Header(None)):
         raise
     except Exception as e:
         print(f"Error in get_current_user_league: {str(e)}")
-        # Final fallback to .env if anything goes wrong
-        league = espn_connector.get_league_connection()
-        if league: return league
-        raise HTTPException(status_code=400, detail=str(e))
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
 
 # Configure CORS - Allow localhost and all Vercel deployments
 app.add_middleware(
