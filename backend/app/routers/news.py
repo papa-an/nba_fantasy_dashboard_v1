@@ -59,36 +59,56 @@ def fetch_player_news(limit=20):
 
         for item in items[:limit]:
             try:
-                # 1. Headline / Player Name
-                headline_div = item.find('div', class_='PlayerNewsPost-headline')
-                
-                # Extract player name (usually in a span or anchor)
+                # 1. Player Name
+                # Structure: .PlayerNewsPost-player-info -> .PlayerNewsPost-name -> .PlayerNewsPost-firstName / .PlayerNewsPost-lastName
                 player_name = "Unknown Player"
-                name_tag = headline_div.find('span', class_='PlayerNewsPost-name') if headline_div else None
-                if name_tag:
-                    player_name = name_tag.get_text(strip=True)
+                first_name = item.find('span', class_='PlayerNewsPost-firstName')
+                last_name = item.find('span', class_='PlayerNewsPost-lastName')
                 
-                # Extract Team
+                if first_name and last_name:
+                    player_name = f"{first_name.get_text(strip=True)} {last_name.get_text(strip=True)}"
+                elif first_name:
+                    player_name = first_name.get_text(strip=True)
+                elif last_name:
+                     player_name = last_name.get_text(strip=True)
+                
+                # 2. Team
                 team_abbr = ""
-                team_tag = headline_div.find('span', class_='PlayerNewsPost-team-abbr') if headline_div else None
+                team_tag = item.find('span', class_='PlayerNewsPost-team-abbr')
                 if team_tag:
                     team_abbr = team_tag.get_text(strip=True)
                 
-                # 2. Content / Analysis
-                analysis_div = item.find('div', class_='PlayerNewsPost-analysis')
+                # 3. Content / Analysis
+                # The text is now in .PlayerNewsPost-headline
+                analysis_div = item.find('div', class_='PlayerNewsPost-headline')
                 analysis_text = analysis_div.get_text(strip=True) if analysis_div else ""
                 
-                # 3. Timestamp
-                time_div = item.find('div', class_='PlayerNewsPost-timestamp')
-                time_str = time_div.get_text(strip=True) if time_div else "Recently"
+                # 4. Timestamp
+                # Time is in .PlayerNewsPost-date data-date attribute or text
+                time_div = item.find('div', class_='PlayerNewsPost-date')
+                time_str = "Recently"
+                if time_div:
+                    # Try to get relative time from attribute or calculated
+                     if time_div.get('data-date'):
+                         # Return raw date for now, or just "Today" if simple
+                         # The frontend might parse ISO strings nicely, but let's stick to simple text if possible
+                         # Actually the UI expects a string like "2h ago". 
+                         # Since we don't have that easily, let's just say "Recently" or use the date.
+                         dt_str = time_div.get('data-date')
+                         # Simple parse to look nice?
+                         try:
+                             dt = datetime.datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+                             time_str = dt.strftime("%b %d, %I:%M %p")
+                         except:
+                             time_str = "Recently"
                 
                 news_items.append({
                     "player": player_name,
                     "team": get_full_team_name(team_abbr),
                     "team_abbr": team_abbr,
-                    "headline": f"{player_name} ({team_abbr})", # Construct a headline
-                    "analysis": analysis_text,
-                    "time": time_str,
+                    "headline": analysis_text[:100] + "..." if len(analysis_text) > 100 else analysis_text, # Use actual text as headline
+                    "report": analysis_text, # Frontend expects 'report'
+                    "date": time_str, # Frontend expects 'date'
                     "source": "NBC Sports"
                 })
                 

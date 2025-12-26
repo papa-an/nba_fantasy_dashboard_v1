@@ -38,7 +38,7 @@ export default function LoginPage() {
             if (data?.user) {
                 console.log("Login success! Redirecting...");
                 // Standard location change is most reliable for setting cookies 
-                window.location.href = '/';
+                window.location.href = '/scouting';
             }
         } catch (err: any) {
             setError("Connection failure. Please refresh.");

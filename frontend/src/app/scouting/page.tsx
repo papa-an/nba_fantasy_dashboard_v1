@@ -35,6 +35,9 @@ export default function ScoutingPage() {
     const [players, setPlayers] = useState<PlayerStats[]>([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'TOTAL_Z', direction: 'desc' });
+    const [expandedPlayerId, setExpandedPlayerId] = useState<number | null>(null);
+    const [consistencyData, setConsistencyData] = useState<Record<number, any>>({});
+    const [loadingConsistency, setLoadingConsistency] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -93,9 +96,7 @@ export default function ScoutingPage() {
         );
     }
 
-    const [expandedPlayerId, setExpandedPlayerId] = useState<number | null>(null);
-    const [consistencyData, setConsistencyData] = useState<Record<number, any>>({});
-    const [loadingConsistency, setLoadingConsistency] = useState(false);
+
 
     // ... (existing useEffect)
 
@@ -176,23 +177,23 @@ export default function ScoutingPage() {
                                         <td className="px-4 py-3 font-medium text-white">
                                             <div className="flex flex-col">
                                                 <span>{player.PLAYER_NAME}</span>
-                                                <span className="text-xs text-muted-foreground">{player.TEAM_ABBREVIATION} • {player.MIN.toFixed(1)} MPG</span>
+                                                <span className="text-xs text-muted-foreground">{player.TEAM_ABBREVIATION} • {(player.MIN || 0).toFixed(1)} MPG</span>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-right bg-white/5 font-mono text-base">
-                                            <span className={getZScoreColor(player.TOTAL_Z)}>
-                                                {player.TOTAL_Z.toFixed(2)}
+                                            <span className={getZScoreColor(player.TOTAL_Z || 0)}>
+                                                {(player.TOTAL_Z || 0).toFixed(2)}
                                             </span>
                                         </td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.PTS.toFixed(1)}</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.REB.toFixed(1)}</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.AST.toFixed(1)}</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.FG3M.toFixed(1)}</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.STL.toFixed(1)}</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.BLK.toFixed(1)}</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.FG_PCT * 100).toFixed(1)}%</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.FT_PCT * 100).toFixed(1)}%</td>
-                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{player.TOV.toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.PTS || 0).toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.REB || 0).toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.AST || 0).toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.FG3M || 0).toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.STL || 0).toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.BLK || 0).toFixed(1)}</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{((player.FG_PCT || 0) * 100).toFixed(1)}%</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{((player.FT_PCT || 0) * 100).toFixed(1)}%</td>
+                                        <td className="px-3 py-3 text-right tabular-nums text-white/80">{(player.TOV || 0).toFixed(1)}</td>
                                     </motion.tr>
 
                                     {/* Expanded Content */}
@@ -225,11 +226,42 @@ export default function ScoutingPage() {
 
                                                             <div className="col-span-2 grid grid-cols-3 gap-4">
                                                                 {Object.entries(consistencyData[player.PLAYER_ID].volatility_stats).map(([key, val]: [string, any]) => (
-                                                                    <div key={key} className="bg-background/30 p-3 rounded-lg border border-white/5">
-                                                                        <div className="text-[10px] text-muted-foreground uppercase">{key.replace('_STD', '')} Volatility</div>
-                                                                        <div className="text-lg font-mono font-medium text-white">{val} <span className="text-xs text-muted-foreground">σ</span></div>
+                                                                    <div key={key} className={cn(
+                                                                        "p-3 rounded-lg border flex flex-col gap-1",
+                                                                        val.color === 'green' ? "bg-green-500/10 border-green-500/20" :
+                                                                            val.color === 'blue' ? "bg-blue-500/10 border-blue-500/20" :
+                                                                                val.color === 'yellow' ? "bg-yellow-500/10 border-yellow-500/20" :
+                                                                                    val.color === 'red' ? "bg-red-500/10 border-red-500/20" :
+                                                                                        "bg-white/5 border-white/5"
+                                                                    )}>
+                                                                        <div className="flex items-center justify-between">
+                                                                            <span className="text-[10px] text-muted-foreground uppercase">{key}</span>
+                                                                            <span className={cn(
+                                                                                "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded",
+                                                                                val.color === 'green' ? "bg-green-500/20 text-green-400" :
+                                                                                    val.color === 'blue' ? "bg-blue-500/20 text-blue-400" :
+                                                                                        val.color === 'yellow' ? "bg-yellow-500/20 text-yellow-400" :
+                                                                                            val.color === 'red' ? "bg-red-500/20 text-red-400" : "bg-white/10 text-white/50"
+                                                                            )}>
+                                                                                {val.rating}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="flex items-baseline gap-2">
+                                                                            <span className="text-lg font-mono font-medium text-white">{val.std} <span className="text-xs text-muted-foreground">σ</span></span>
+                                                                        </div>
+                                                                        <div className="text-[10px] text-muted-foreground">
+                                                                            CV: {val.cv}
+                                                                        </div>
                                                                     </div>
                                                                 ))}
+                                                            </div>
+
+                                                            {/* Legend */}
+                                                            <div className="col-span-1 md:col-span-3 mt-4 pt-4 border-t border-white/5 flex gap-4 overflow-x-auto text-[10px] text-muted-foreground">
+                                                                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Elite (CV &lt; 0.15)</span>
+                                                                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Stable (CV &lt; 0.30)</span>
+                                                                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-500"></div> Volatile (CV &lt; 0.50)</span>
+                                                                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Wild (CV &ge; 0.50)</span>
                                                             </div>
                                                         </>
                                                     ) : (

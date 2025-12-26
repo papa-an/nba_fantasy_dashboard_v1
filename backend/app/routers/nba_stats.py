@@ -117,36 +117,67 @@ async def get_player_consistency_stats(player_id: int):
              
         recent = gamelog.head(20) # Analyze last 20 games for relevant trend
         
-        # Calculate Standard Deviation (Volatility) for 9-cat
-        # Lower Clean_STD = Better Consistency
-        stats_std = {
-            'PTS_STD': round(recent['PTS'].std(), 2),
-            'REB_STD': round(recent['REB'].std(), 2),
-            'AST_STD': round(recent['AST'].std(), 2),
-            'STL_STD': round(recent['STL'].std(), 2),
-            'BLK_STD': round(recent['BLK'].std(), 2),
-            'FG3M_STD': round(recent['FG3M'].std(), 2),
-            'FG_PCT_STD': round(recent['FG_PCT'].std(), 3),
-            'FT_PCT_STD': round(recent['FT_PCT'].std(), 3),
-            'TOV_STD': round(recent['TOV'].std(), 2),
-        }
+        # Calculate Standard Deviation (Volatility) for 9-cat and normalize it
+        # using Coefficient of Variation (CV = std / mean) to give a rating.
+        stats_data = {}
         
-        # Calculate a "Consistency Grade" (A-F) based on PTS volatility relative to average
+        categories = ['PTS', 'REB', 'AST', 'STL', 'BLK', 'FG3M', 'FG_PCT', 'FT_PCT', 'TOV']
+        
+        for cat in categories:
+            val_mean = recent[cat].mean()
+            val_std = recent[cat].std()
+            
+            # Avoid division by zero
+            cv = (val_std / val_mean) if val_mean > 0.1 else 0.0
+            
+            # Rating Logic (CV thresholds)
+            # These thresholds might need tuning
+            rating = "Stable"
+            color = "blue"
+            
+            if cv < 0.15:
+                rating = "Elite"
+                color = "green"
+            elif cv < 0.30:
+                rating = "Stable"
+                color = "blue"
+            elif cv < 0.50:
+                rating = "Volatile"
+                color = "yellow"
+            else:
+                rating = "Wild"
+                color = "red"
+                
+            # Special case for percentages with low volume
+            if cat in ['FG_PCT', 'FT_PCT'] and val_mean < 0.1:
+                rating = "Low Vol"
+                color = "gray"
+
+            stats_data[cat] = {
+                "std": round(val_std, 2),
+                "mean": round(val_mean, 1),
+                "cv": round(cv, 2),
+                "rating": rating,
+                "color": color
+            }
+
+        # Calculate a "Consistency Grade" (A-F) based on PTS volatility mainly,
+        # but could ideally be an average of all CVs.
         avg_pts = recent['PTS'].mean()
-        cv_pts = stats_std['PTS_STD'] / avg_pts if avg_pts > 0 else 0
+        cv_pts = stats_data['PTS']['cv']
         
         grade = "B"
-        if cv_pts < 0.2: grade = "A+" # Very consistent
-        elif cv_pts < 0.3: grade = "A"
-        elif cv_pts < 0.4: grade = "B"
-        elif cv_pts < 0.5: grade = "C"
-        else: grade = "D" # High volatility (Boom/Bust)
+        if cv_pts < 0.15: grade = "A+" 
+        elif cv_pts < 0.25: grade = "A"
+        elif cv_pts < 0.35: grade = "B"
+        elif cv_pts < 0.50: grade = "C"
+        else: grade = "F"
 
         return {
             "player_id": player_id,
             "games_analyzed": len(recent),
             "consistency_grade": grade,
-            "volatility_stats": stats_std,
+            "volatility_stats": stats_data, # New detailed structure
             "recent_averages": {
                 "PTS": round(avg_pts, 1),
                 "MIN": round(recent['MIN'].mean(), 1)

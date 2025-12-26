@@ -2,8 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
-from supabase import create_client, Client
 from app.routers import news, nba_stats
+
+try:
+    from supabase import create_client, Client
+    supabase_installed = True
+except ImportError:
+    supabase_installed = False
+    Client = object # Dummy class for type hinting
+
 
 # Load environment variables from .env file FIRST
 load_dotenv()
@@ -18,7 +25,10 @@ app.include_router(nba_stats.router, prefix="/nba", tags=["NBA Stats"])
 supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
-supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
+supabase: Client = None
+if supabase_installed and supabase_url and supabase_key:
+    supabase = create_client(supabase_url, supabase_key)
+
 
 @app.get("/health")
 async def health():
@@ -31,6 +41,7 @@ async def health():
 # CORS Configuration
 origins = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "https://nba-fantasy-dashboard-v1.vercel.app",
 ]
 
